@@ -1,0 +1,28 @@
+{
+  "name": "tiny-fiber",
+  "version": "1.0.0",
+  "description": "为了学习 Fiber 架构",
+  "main": "webpack.config.js",
+  "author": "ueumd",
+  "repository": "https://github.com/ueumd/tiny-fiber",
+  "scripts": {
+    "start": "webpack serve"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.13.10",
+    "@babel/preset-env": "^7.13.10",
+    "@babel/preset-react": "^7.12.13",
+    "babel-loader": "^8.2.2",
+    "eslint": "^8.21.0",
+    "eslint-plugin-react": "^7.30.1",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^2.7.1",
+    "html-webpack-plugin": "^5.3.1",
+    "webpack": "^5.25.0",
+    "webpack-cli": "^4.5.0",
+    "webpack-dev-server": "^3.11.2"
+  }
+}
