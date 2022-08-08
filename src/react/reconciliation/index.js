@@ -83,28 +83,28 @@ const executeTask = fiber => {
 	reconcileChildren(fiber, fiber.props.children)
 
 	// 如果有子级 返回子级
+  // 左侧节点
 	if (fiber.child) {
 		return fiber.child
 	}
 
-	// 找出所有节点 构建fiber对象
+  /**
+   * 1. 如果存在同级 返回同级 构建同级的子级
+   * 2. 如果同级不存在 返回到父级 看父级是否有同级
+   */
+
+	// 找出其他所有节点 构建fiber对象
 	// 将这个子级当做父级 构建这个父级下的子级
 	let currentExecuteFiber = fiber
 
   // 查找所有节点
   // 从底部查找到根节点
 	while (currentExecuteFiber.parent) {
-		// 同级中的兄弟节点
+		// 1. 如果存在同级 返回同级 构建同级的子级
 		if (currentExecuteFiber.sibling) {
 			return currentExecuteFiber.sibling
 		}
-
-		//  同级中的兄弟节点
-		// if(fiber.sibling) {
-		//   return  fiber.sibling
-		// }
-
-		// 同级不存在 退回父级
+		// 2. 如果同级不存在 返回到父级 看父级是否有同级
 		currentExecuteFiber = currentExecuteFiber.parent
 	}
 
