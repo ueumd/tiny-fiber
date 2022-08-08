@@ -1,4 +1,4 @@
-import { createTaskQueue } from '../misc'
+import { createTaskQueue, createStateNode } from '../misc'
 import arrified from '../misc/arrified'
 
 // 任务队列
@@ -52,9 +52,11 @@ const reconcileChildren = (fiber, children) => {
 			tag: 'host_component',
 			effects: [],
 			effectTag: 'placement',
-			stateNode: null,
+			// stateNode: null,
       parent: fiber
 		}
+
+    newFiber.stateNode = createStateNode(newFiber)
 
     if (index === 0) {
       // 第一个子节点
