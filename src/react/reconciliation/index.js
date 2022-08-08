@@ -7,6 +7,19 @@ const taskQueue = createTaskQueue()
 // 要执行的 任务
 let subTask = null
 
+// 等待并提交
+let pendingCommit = null
+
+const commitAllWork = fiber => {
+  console.log(fiber.effects)
+  fiber.effects.forEach(item => {
+    if(item.effectTag === 'placement') {
+      // 父级插入子级
+      item.parent.stateNode.appendChild(item.stateNode)
+    }
+  })
+}
+
 /**
  * 从任务队中获取任务 并返回 fiber 对象
  */
@@ -98,7 +111,7 @@ const executeTask = fiber => {
 	let currentExecuteFiber = fiber
 
   // 查找所有节点
-  // 从底部查找到根节点
+  // 从底部查找到根节点 倒着查找
 	while (currentExecuteFiber.parent) {
 
     // 把所有的fiber对象 存在最外层节点(id=root)对象的effects数组中
@@ -117,6 +130,8 @@ const executeTask = fiber => {
 		currentExecuteFiber = currentExecuteFiber.parent
 	}
 
+  // 说明已经执行完
+  pendingCommit = currentExecuteFiber
 	console.log(currentExecuteFiber) // 最外层id=root
 	console.log(fiber)
 }
@@ -139,6 +154,11 @@ const workLoop = deadline => {
 		// 返回新的任务
 		subTask = executeTask(subTask)
 	}
+
+  if (pendingCommit) {
+    // 执行第2阶段
+    commitAllWork(pendingCommit)
+  }
 }
 
 /**
