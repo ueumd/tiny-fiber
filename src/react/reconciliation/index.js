@@ -72,9 +72,19 @@ const reconcileChildren = (fiber, children) => {
 	}
 }
 
+/**
+ * 执行任务 并构建子级fiber对象
+ * @param fiber
+ * @returns {null|*}
+ */
 const executeTask = fiber => {
+  // 构建子级fiber对象
 	reconcileChildren(fiber, fiber.props.children)
   console.log(fiber)
+  if(fiber.child) {
+    return fiber.child
+  }
+  // console.log(fiber)
 }
 
 /**
