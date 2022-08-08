@@ -1,4 +1,4 @@
-import {createTaskQueue, createStateNode, getTag} from '../misc'
+import { createTaskQueue, createStateNode, getTag } from '../misc'
 import arrified from '../misc/arrified'
 
 // 任务队列
@@ -41,7 +41,7 @@ const reconcileChildren = (fiber, children) => {
 	let element = null
 
 	let newFiber = null
-  let prevFiber = null
+	let prevFiber = null
 
 	while (index < numberOFElements) {
 		element = arrifiedChildren[index]
@@ -53,20 +53,19 @@ const reconcileChildren = (fiber, children) => {
 			effects: [],
 			effectTag: 'placement',
 			// stateNode: null,
-      parent: fiber
+			parent: fiber
 		}
 
-    newFiber.stateNode = createStateNode(newFiber)
+		newFiber.stateNode = createStateNode(newFiber)
 
-    if (index === 0) {
-      // 第一个子节点
-      fiber.child = newFiber
-    } else {
-      prevFiber.sibling = newFiber
-    }
+		if (index === 0) {
+			// 第一个子节点
+			fiber.child = newFiber
+		} else {
+			prevFiber.sibling = newFiber
+		}
 
-    prevFiber = newFiber
-
+		prevFiber = newFiber
 
 		index++
 	}
@@ -78,13 +77,38 @@ const reconcileChildren = (fiber, children) => {
  * @returns {null|*}
  */
 const executeTask = fiber => {
-  // 构建子级fiber对象
+	// console.log(fiber)
+
+	// 构建子级fiber对象
 	reconcileChildren(fiber, fiber.props.children)
-  console.log(fiber)
-  if(fiber.child) {
-    return fiber.child
-  }
-  // console.log(fiber)
+
+	// 如果有子级 返回子级
+	if (fiber.child) {
+		return fiber.child
+	}
+
+	// 找出所有节点 构建fiber对象
+	// 将这个子级当做父级 构建这个父级下的子级
+	let currentExecuteFiber = fiber
+
+  // 查找所有节点
+  // 从底部查找到根节点
+	while (currentExecuteFiber.parent) {
+		// 同级中的兄弟节点
+		if (currentExecuteFiber.sibling) {
+			return currentExecuteFiber.sibling
+		}
+
+		//  同级中的兄弟节点
+		// if(fiber.sibling) {
+		//   return  fiber.sibling
+		// }
+
+		// 同级不存在 退回父级
+		currentExecuteFiber = currentExecuteFiber.parent
+	}
+
+	console.log(fiber)
 }
 
 /**
