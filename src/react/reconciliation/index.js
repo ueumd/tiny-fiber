@@ -100,6 +100,15 @@ const executeTask = fiber => {
   // 查找所有节点
   // 从底部查找到根节点
 	while (currentExecuteFiber.parent) {
+
+    // 把所有的fiber对象 存在最外层节点(id=root)对象的effects数组中
+    // 最外层的 effects 数组中就有所有的fiber对象
+    currentExecuteFiber.parent.effects = currentExecuteFiber.parent.effects.concat(
+      // 数组进行合并
+      currentExecuteFiber.effects.concat([currentExecuteFiber])
+    )
+
+
 		// 1. 如果存在同级 返回同级 构建同级的子级
 		if (currentExecuteFiber.sibling) {
 			return currentExecuteFiber.sibling
