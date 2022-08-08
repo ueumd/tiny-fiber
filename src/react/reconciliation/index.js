@@ -117,6 +117,7 @@ const executeTask = fiber => {
 		currentExecuteFiber = currentExecuteFiber.parent
 	}
 
+	console.log(currentExecuteFiber) // 最外层id=root
 	console.log(fiber)
 }
 
