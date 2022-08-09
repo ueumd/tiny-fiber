@@ -16,7 +16,7 @@ class Greating extends Component {
 		super(props)
 	}
 	render() {
-		return <div>Hello</div>
+		return <div>Hello {this.props.title}</div>
 	}
 }
 
@@ -26,5 +26,5 @@ function FuncComponent(props){
 }
 
 // render(jsx, root)
-// render(<Greating />, root)
-render(<FuncComponent title="hello" />, root)
+render(<Greating title="奥利给" />, root)
+// render(<FuncComponent title="hello" />, root)
