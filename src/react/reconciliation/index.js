@@ -1,5 +1,6 @@
 import { createTaskQueue, createStateNode, getTag } from '../misc'
 import arrified from '../misc/arrified'
+import {updateNodeElement} from "../dom";
 
 /**
 
@@ -42,17 +43,30 @@ let pendingCommit = null
  * @param fiber
  */
 const commitAllWork = fiber => {
-	console.log(fiber.effects)
+	// console.log(fiber.effects)
+
+	// 循环 effects 数组 构建DOM节点树
 	fiber.effects.forEach(item => {
+    if (item.effectTag === 'update') {
+      // 更新
+
+      // 当前节点与备份节点类型相同
+      if(item.type === item.alternate.type) {
+        updateNodeElement(item.stateNode, item, item.alternate)
+      } else {
+        // 节点类型不同
+        item.parent.stateNode.replaceChild(item.stateNode, item.alternate.stateNode)
+      }
+    }
 		if (item.effectTag === 'placement') {
-      // 当前要追加的节点
+			// 当前要追加的节点
 			let fiber = item
 
-      // 当前要追加的子级节点的父级
+			// 当前要追加的子级节点的父级
 			let parentFiber = item.parent
 
 			// 找到普通节点父级 排除组件父级
-      // 因为组件级是不能直接追加真实DOM节点的
+			// 因为组件级是不能直接追加真实DOM节点的
 			while (parentFiber.tag === 'class_component' || parentFiber.tag === 'function_component') {
 				parentFiber = parentFiber.parent
 			}
@@ -61,6 +75,9 @@ const commitAllWork = fiber => {
 			}
 		}
 	})
+
+	// 在根节点 备份旧的 fiber 节点对象
+	fiber.stateNode._rootFiberContaner = fiber
 }
 
 /**
@@ -77,12 +94,13 @@ const getFirstTask = () => {
 		stateNode: task.dom,
 		tag: 'host_root',
 		effects: [],
-		child: null
+		child: null,
+		alternate: task.dom._rootFiberContaner
 	}
 }
 
 /**
- * 构建 fiber 对象
+ * 构建子结节 fiber 对象
  * @param fiber
  * @param children 所有子级节点
  */
@@ -102,23 +120,57 @@ const reconcileChildren = (fiber, children) => {
 	// 上一个节点
 	let prevFiber = null
 
+	let alternate = null
+
+	// children 数组中第1个子节点
+	if (fiber.alternate && fiber.alternate.child) {
+		alternate = fiber.alternate.child
+	}
+
 	while (index < numberOFElements) {
 		element = arrifiedChildren[index]
 		// console.log(element)
-		newFiber = {
-			type: element.type,
-			props: element.props,
-			tag: getTag(element),
-			effects: [],
-			effectTag: 'placement',
-			// stateNode: null,
-			parent: fiber // 当前节点的父级
-		}
 
-		// 存储当前节点的DOM对象
-		// 如果类组件 则是当前节点对象的实例
-		newFiber.stateNode = createStateNode(newFiber)
-		console.log('newFiber', newFiber)
+		if (element && alternate) {
+      // 更新
+      newFiber = {
+        type: element.type,
+        props: element.props,
+        tag: getTag(element),
+        effects: [],
+        effectTag: 'update',
+        // stateNode: null,
+        parent: fiber,
+        alternate
+      }
+
+      if (element.type === alternate.type) {
+        // 类型相同
+        newFiber.stateNode = alternate.stateNode
+      } else {
+        // 存储当前节点的DOM对象
+        // 如果类组件 则是当前节点对象的实例
+        newFiber.stateNode = createStateNode(newFiber)
+      }
+
+		} else if (element && !alternate) {
+			// 初始渲染
+			// 子级fiber对象
+			newFiber = {
+				type: element.type,
+				props: element.props,
+				tag: getTag(element),
+				effects: [],
+				effectTag: 'placement',
+				// stateNode: null,
+				parent: fiber // 当前节点的父级
+			}
+
+			// 存储当前节点的DOM对象
+			// 如果类组件 则是当前节点对象的实例
+			newFiber.stateNode = createStateNode(newFiber)
+			// console.log('newFiber', newFiber)
+		}
 
 		// 为父级 fiber 添加 子级 fiber
 		if (index === 0) {
@@ -128,6 +180,10 @@ const reconcileChildren = (fiber, children) => {
 		} else {
 			// 为fiber 添加一下个兄弟 fiber
 			prevFiber.sibling = newFiber
+		}
+
+		if (alternate && alternate.sibling) {
+			alternate = alternate.sibling
 		}
 
 		prevFiber = newFiber

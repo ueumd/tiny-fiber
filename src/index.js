@@ -26,5 +26,20 @@ function FuncComponent(props){
 }
 
 // render(jsx, root)
-render(<Greating title="奥利给" />, root)
+// render(<Greating title="奥利给" />, root)
 // render(<FuncComponent title="hello" />, root)
+
+
+// 更新节点
+render(jsx, root)
+
+setTimeout(() => {
+  const jsx = (
+    <div>
+      <div>奥利给</div>
+      <p>Hello Fiber</p>
+    </div>
+  )
+
+  render(jsx, root)
+}, 3000)
