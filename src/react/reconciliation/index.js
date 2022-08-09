@@ -45,20 +45,20 @@ const commitAllWork = fiber => {
 	console.log(fiber.effects)
 	fiber.effects.forEach(item => {
 		if (item.effectTag === 'placement') {
+      // 当前要追加的节点
 			let fiber = item
+
+      // 当前要追加的子级节点的父级
 			let parentFiber = item.parent
 
-			// 类组件一直找到父节点 普通组件的
-			while (parentFiber.tag === 'class_component') {
+			// 找到普通节点父级 排除组件父级
+      // 因为组件级是不能直接追加真实DOM节点的
+			while (parentFiber.tag === 'class_component' || parentFiber.tag === 'function_component') {
 				parentFiber = parentFiber.parent
 			}
-
 			if (fiber.tag === 'host_component') {
 				parentFiber.stateNode.appendChild(fiber.stateNode)
 			}
-
-			// 父级插入子级
-			// item.parent.stateNode.appendChild(item.stateNode)
 		}
 	})
 }
@@ -152,6 +152,8 @@ const executeTask = fiber => {
 
 	if (fiber.tag === 'class_component') {
 		reconcileChildren(fiber, fiber.stateNode.render())
+	} else if (fiber.tag === 'function_component') {
+		reconcileChildren(fiber, fiber.stateNode(fiber.props))
 	} else {
 		// 普通节点
 		reconcileChildren(fiber, fiber.props.children)
