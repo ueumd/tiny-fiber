@@ -1,3 +1,4 @@
+import { Component } from '../../component'
 const getTag = vdom => {
 	// 普通节点
 	if (typeof vdom.type === 'string') {
@@ -8,6 +9,5 @@ const getTag = vdom => {
 		return 'function_component'
 	}
 }
-
 
 export default getTag

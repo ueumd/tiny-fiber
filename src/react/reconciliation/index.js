@@ -37,14 +37,30 @@ let subTask = null
 // 等待并提交
 let pendingCommit = null
 
+/**
+ * 提交阶段
+ * @param fiber
+ */
 const commitAllWork = fiber => {
-  console.log(fiber.effects)
-  fiber.effects.forEach(item => {
-    if(item.effectTag === 'placement') {
-      // 父级插入子级
-      item.parent.stateNode.appendChild(item.stateNode)
-    }
-  })
+	console.log(fiber.effects)
+	fiber.effects.forEach(item => {
+		if (item.effectTag === 'placement') {
+			let fiber = item
+			let parentFiber = item.parent
+
+			// 类组件一直找到父节点 普通组件的
+			while (parentFiber.tag === 'class_component') {
+				parentFiber = parentFiber.parent
+			}
+
+			if (fiber.tag === 'host_component') {
+				parentFiber.stateNode.appendChild(fiber.stateNode)
+			}
+
+			// 父级插入子级
+			// item.parent.stateNode.appendChild(item.stateNode)
+		}
+	})
 }
 
 /**
@@ -71,6 +87,7 @@ const getFirstTask = () => {
  * @param children 所有子级节点
  */
 const reconcileChildren = (fiber, children) => {
+	// console.log(children)
 	// children 可能是对象 也可能是数组
 	// 将 children 转换成数组
 	const arrifiedChildren = arrified(children)
@@ -82,7 +99,7 @@ const reconcileChildren = (fiber, children) => {
 
 	let newFiber = null
 
-  // 上一个节点
+	// 上一个节点
 	let prevFiber = null
 
 	while (index < numberOFElements) {
@@ -98,16 +115,18 @@ const reconcileChildren = (fiber, children) => {
 			parent: fiber // 当前节点的父级
 		}
 
-    // 存储当前节点的DOM对象
+		// 存储当前节点的DOM对象
+		// 如果类组件 则是当前节点对象的实例
 		newFiber.stateNode = createStateNode(newFiber)
+		console.log('newFiber', newFiber)
 
-    // 为父级 fiber 添加 子级 fiber
+		// 为父级 fiber 添加 子级 fiber
 		if (index === 0) {
 			// 第1个节点的子节点
-      // 当前节点的子结点
+			// 当前节点的子结点
 			fiber.child = newFiber
 		} else {
-      // 为fiber 添加一下个兄弟 fiber
+			// 为fiber 添加一下个兄弟 fiber
 			prevFiber.sibling = newFiber
 		}
 
@@ -126,38 +145,42 @@ const executeTask = fiber => {
 	// console.log(fiber)
 
 	// 构建子级Fiber对象
-  // virtualDOM -> fiber.props.children
+	// virtualDOM -> fiber.props.children
 
-  // fiber 当前Fiber对象 (根节点)
-  // fiber.props.children (子节点)
-	reconcileChildren(fiber, fiber.props.children)
+	// fiber 当前Fiber对象 (根节点)
+	// fiber.props.children (子节点)
+
+	if (fiber.tag === 'class_component') {
+		reconcileChildren(fiber, fiber.stateNode.render())
+	} else {
+		// 普通节点
+		reconcileChildren(fiber, fiber.props.children)
+	}
 
 	// 如果有子级 返回子级
-  // 左侧节点
+	// 左侧节点
 	if (fiber.child) {
 		return fiber.child
 	}
 
-  /**
-   * 1. 如果存在同级 返回同级 构建同级的子级
-   * 2. 如果同级不存在 返回到父级 看父级是否有同级
-   */
+	/**
+	 * 1. 如果存在同级 返回同级 构建同级的子级
+	 * 2. 如果同级不存在 返回到父级 看父级是否有同级
+	 */
 
 	// 找出其他所有节点 构建fiber对象
 	// 将这个子级当做父级 构建这个父级下的子级
 	let currentExecuteFiber = fiber
 
-  // 查找所有节点
-  // 从底部查找到根节点 倒着查找
+	// 查找所有节点
+	// 从底部查找到根节点 倒着查找
 	while (currentExecuteFiber.parent) {
-
-    // 把所有的fiber对象 存在最外层节点(id=root)对象的effects数组中
-    // 最外层的 effects 数组中就有所有的fiber对象
-    currentExecuteFiber.parent.effects = currentExecuteFiber.parent.effects.concat(
-      // 数组进行合并
-      currentExecuteFiber.effects.concat([currentExecuteFiber])
-    )
-
+		// 把所有的fiber对象 存在最外层节点(id=root)对象的effects数组中
+		// 最外层的 effects 数组中就有所有的fiber对象
+		currentExecuteFiber.parent.effects = currentExecuteFiber.parent.effects.concat(
+			// 数组进行合并
+			currentExecuteFiber.effects.concat([currentExecuteFiber])
+		)
 
 		// 1. 如果存在同级 返回同级 构建同级的子级
 		if (currentExecuteFiber.sibling) {
@@ -167,8 +190,8 @@ const executeTask = fiber => {
 		currentExecuteFiber = currentExecuteFiber.parent
 	}
 
-  // 说明已经执行完
-  pendingCommit = currentExecuteFiber
+	// 说明已经执行完
+	pendingCommit = currentExecuteFiber
 	console.log(currentExecuteFiber) // 最外层id=root
 	console.log(fiber)
 }
@@ -180,7 +203,7 @@ const executeTask = fiber => {
 const workLoop = deadline => {
 	// 如果子任务不存在 就获取任务
 	if (!subTask) {
-    // 第1次执行 肯定是没有任务的
+		// 第1次执行 肯定是没有任务的
 		subTask = getFirstTask()
 		console.log('subTask', subTask)
 	}
@@ -192,10 +215,10 @@ const workLoop = deadline => {
 		subTask = executeTask(subTask)
 	}
 
-  if (pendingCommit) {
-    // 执行第2阶段
-    commitAllWork(pendingCommit)
-  }
+	if (pendingCommit) {
+		// 执行第2阶段
+		commitAllWork(pendingCommit)
+	}
 }
 
 /**
@@ -241,7 +264,7 @@ export const render = (element, dom) => {
 		props: { children: element }
 	})
 
-	console.log(taskQueue.pop())
+	// console.log(taskQueue.pop())
 
 	// 指定在浏览器空闲的时间去执行任务
 	requestIdleCallback(performTask)

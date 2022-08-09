@@ -1,7 +1,8 @@
-import React, { render } from './react'
+import React, { render, Component } from './react'
 
 const root = document.getElementById('root')
 
+// 普通节点
 const jsx = (
 	<div className="app">
 		<p>Hello React</p>
@@ -9,19 +10,15 @@ const jsx = (
 	</div>
 )
 
-console.log('jsx', jsx)
+// 类组件
+class Greating extends Component {
+	constructor(props) {
+		super(props)
+	}
+	render() {
+		return <div>Hello</div>
+	}
+}
 
-/**
-
- props: {
-     children: [
-        0: {type: 'p', props: {…}}
-        1: {type: 'p', props: {…}}
-     ]
-     className: "app"
- }
- type: "div"
-
- */
-
+// render(<Greating />, root)
 render(jsx, root)
