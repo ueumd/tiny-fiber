@@ -1,5 +1,5 @@
 import { createDOMElement } from '../../dom'
-import {createReactInstance } from '../createReactInstance'
+import createReactInstance from '../createReactInstance'
 
 const createStateNode = fiber => {
 	// 普通节点
