@@ -1,6 +1,33 @@
 import { createTaskQueue, createStateNode, getTag } from '../misc'
 import arrified from '../misc/arrified'
 
+/**
+
+ Fiber 对象
+ {
+  type         节点类型 (元素, 文本, 组件)(具体的类型)
+  props        节点属性
+  stateNode    节点 DOM 对象 | 组件实例对象
+  tag          节点标记 (对具体类型的分类 hostRoot || hostComponent || classComponent || functionComponent)
+  effects      数组, 存储需要更改的 fiber 对象
+  effectTag    当前 Fiber 要被执行的操作 (新增, 删除, 修改)
+  parent       当前 Fiber 的父级 Fiber
+  child        当前 Fiber 的子级 Fiber
+  sibling      当前 Fiber 的下一个兄弟 Fiber
+  alternate    当前Fiber 备份 fiber 比对时使用
+}
+
+
+ 实现思路：
+ 在Fiber方案中， 为了实现任务的终止再继续，DOM对比算法 被分成了两部分
+ 1. 构建 Fiber (可中断)
+ 2. 提交 Commit (不可中断)
+
+ DOM 初始化渲染：virtualDOM -> Fiber  -> Fiber[] -> DOM
+ DOM   更新操作：newFiber vs oldFiber -> Fiber[] -> DOM
+
+ */
+
 // 任务队列
 const taskQueue = createTaskQueue()
 
@@ -28,7 +55,7 @@ const getFirstTask = () => {
 	const task = taskQueue.pop()
 	console.log('task', task)
 
-	// 返回最外层的 fiber 节点对象
+	// 返回最外层的 Fiber 节点对象
 	return {
 		props: task.props,
 		stateNode: task.dom,
@@ -39,9 +66,9 @@ const getFirstTask = () => {
 }
 
 /**
- * 构建子节点
+ * 构建 fiber 对象
  * @param fiber
- * @param children
+ * @param children 所有子级节点
  */
 const reconcileChildren = (fiber, children) => {
 	// children 可能是对象 也可能是数组
@@ -54,6 +81,8 @@ const reconcileChildren = (fiber, children) => {
 	let element = null
 
 	let newFiber = null
+
+  // 上一个节点
 	let prevFiber = null
 
 	while (index < numberOFElements) {
@@ -66,15 +95,19 @@ const reconcileChildren = (fiber, children) => {
 			effects: [],
 			effectTag: 'placement',
 			// stateNode: null,
-			parent: fiber
+			parent: fiber // 当前节点的父级
 		}
 
+    // 存储当前节点的DOM对象
 		newFiber.stateNode = createStateNode(newFiber)
 
+    // 为父级 fiber 添加 子级 fiber
 		if (index === 0) {
-			// 第一个子节点
+			// 第1个节点的子节点
+      // 当前节点的子结点
 			fiber.child = newFiber
 		} else {
+      // 为fiber 添加一下个兄弟 fiber
 			prevFiber.sibling = newFiber
 		}
 
@@ -92,7 +125,11 @@ const reconcileChildren = (fiber, children) => {
 const executeTask = fiber => {
 	// console.log(fiber)
 
-	// 构建子级fiber对象
+	// 构建子级Fiber对象
+  // virtualDOM -> fiber.props.children
+
+  // fiber 当前Fiber对象 (根节点)
+  // fiber.props.children (子节点)
 	reconcileChildren(fiber, fiber.props.children)
 
 	// 如果有子级 返回子级
@@ -141,9 +178,9 @@ const executeTask = fiber => {
  * @param deadline
  */
 const workLoop = deadline => {
-	// 第1次执行 肯定是没有任务的
 	// 如果子任务不存在 就获取任务
 	if (!subTask) {
+    // 第1次执行 肯定是没有任务的
 		subTask = getFirstTask()
 		console.log('subTask', subTask)
 	}
@@ -185,7 +222,17 @@ const performTask = deadline => {
  * 任务就是通过 vdom 对象 构建 fiber 对象
  *
  * @param element
- * @param dom => root
+
+   props: {
+       children: [
+          0: {type: 'p', props: {…}}
+          1: {type: 'p', props: {…}}
+       ]
+       className: "app"
+   }
+   type: "div"
+
+ * @param dom =>  <div id="root"></div>
  */
 export const render = (element, dom) => {
 	// 1. 向任务队列中添加任务
@@ -194,7 +241,7 @@ export const render = (element, dom) => {
 		props: { children: element }
 	})
 
-	// console.log(taskQueue.pop())
+	console.log(taskQueue.pop())
 
 	// 指定在浏览器空闲的时间去执行任务
 	requestIdleCallback(performTask)

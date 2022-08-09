@@ -12,36 +12,45 @@
 	</head>
 	<body>
 		<div id="box"></div>
-		<button id="btn1">执行计算任务</button>
+		<button id="btn">占用主线程</button>
+		<button id="btn1">执行计算任务 requestIdleCallback</button>
 		<button id="btn2">更改背景颜色</button>
 		<script>
 			const box = document.getElementById('box')
-      const btn1 = document.getElementById('btn1')
-      const btn2 = document.getElementById('btn2')
+			const btn = document.getElementById('btn')
+			const btn1 = document.getElementById('btn1')
+			const btn2 = document.getElementById('btn2')
 
 			var number = 99999
 			var value = 0
 
-			// function calc() {
-			//   while (number > 0) {
-			//     value = Math.random() < 0.5 ? Math.random() : Math.random();
-			//     console.log(value)
-			//     number--
-			//   }
-			// }
-
-			function calc(deadline) {
-				// 当空闲时间大于1ms的时候执行该循环
-				while (number > 0 && deadline.timeRemaining() > 1) {
+			function calc2() {
+				while (number > 0) {
 					value = Math.random() < 0.5 ? Math.random() : Math.random()
 					console.log(value)
 					number--
 				}
-				// 如果高级任务执行，循环被终止，我们等高级任务被执行完，应该再次调用requestIdleCallback(calc)执行循环
-				requestIdleCallback(calc)
 			}
+
+      function calc(deadline) {
+        // deadline.timeRemaining() > 1
+        // 当空闲时间大于 1m s的时候执行该循环
+
+        while (number > 0 && deadline.timeRemaining() > 1) {
+          value = Math.random() < 0.5 ? Math.random() : Math.random()
+          console.log(value)
+          number--
+        }
+
+        // 如果高级任务执行，循环被终止，我们等高级任务被执行完，应该再次调用requestIdleCallback(calc)执行循环
+        requestIdleCallback(calc)
+      }
+
+      btn.onclick = function () {
+        calc2()
+      }
+
 			btn1.onclick = function () {
-				// calc()
 				requestIdleCallback(calc)
 			}
 			btn2.onclick = function () {

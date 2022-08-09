@@ -11,4 +11,17 @@ const jsx = (
 
 console.log('jsx', jsx)
 
+/**
+
+ props: {
+     children: [
+        0: {type: 'p', props: {…}}
+        1: {type: 'p', props: {…}}
+     ]
+     className: "app"
+ }
+ type: "div"
+
+ */
+
 render(jsx, root)
