@@ -12,8 +12,8 @@
 	</head>
 	<body>
 		<div id="box"></div>
-		<button id="btn">占用主线程</button>
-		<button id="btn1">执行计算任务 requestIdleCallback</button>
+		<button id="btn">btn1 占用主线程</button>
+		<button id="btn1">bnt2 requestIdleCallback</button>
 		<button id="btn2">更改背景颜色</button>
 		<script>
 			const box = document.getElementById('box')
@@ -54,8 +54,11 @@
 				requestIdleCallback(calc)
 			}
 			btn2.onclick = function () {
-				box.style.background = 'green'
+				box.style.background = 'skyblue'
 			}
+
+
+
 		</script>
 	</body>
 </html>

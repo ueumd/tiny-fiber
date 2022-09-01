@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Title</title>
+		<style>
+			#app {
+				position: absolute;
+				left: 10px;
+				width: 100px;
+				border: 1px solid red;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app">点击运行动画</div>
+		<div style="position: absolute; top: 70px">
+      <button id="start">执行动画</button>
+      <button id="cancel">取消动画</button>
+    </div>
+		<script>
+			window.requestAnimFrame = (function () {
+				return (
+					window.requestAnimationFrame ||
+					window.mozRequestAnimationFrame ||
+					window.oRequestAnimationFrame ||
+					window.msRequestAnimationFrame ||
+					function (callback) {
+						window.setTimeout(callback, 1000 / 60)
+					}
+				)
+			})()
+
+			let startTime = undefined
+
+			function render(time) {
+				if (time === undefined) time = Date.now()
+				if (startTime === undefined) startTime = time
+
+				app.style.left = (((time - startTime) / 10) % 500) + 'px'
+			}
+
+      let requestId
+
+      start.onclick = function () {
+				;(function animloop() {
+					render()
+          requestId = requestAnimFrame(animloop)
+				})()
+			}
+
+      cancel.onclick = function () {
+        cancelAnimationFrame(requestId)
+      }
+
+		</script>
+	</body>
+</html>
